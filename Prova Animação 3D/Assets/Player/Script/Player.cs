@@ -14,12 +14,17 @@ public class Player : MonoBehaviour
     public GameObject Diamante;
     public Transform[] pontosSpawn = new Transform[5];
     public TextMeshPro text;
-    
+    public AudioClip coletarAudio; 
+    public AudioClip andarAudio;
+    public AudioClip spawnAudio;
+    public AudioSource playerAudio;
+
 
     void Start()
     {
         controlador = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
+        playerAudio = GetComponent<AudioSource>();
         Spawnar();
     }
 
@@ -32,6 +37,13 @@ public class Player : MonoBehaviour
 
         if (movimento.magnitude > 0)
         {
+            if (playerAudio.clip != andarAudio)
+            {
+                playerAudio.clip = andarAudio;
+                playerAudio.loop = true;
+                playerAudio.Play();
+            }
+
             animator.SetBool("Walk", true);
 
             Vector3 direcao = new Vector3(movimentoX, 0, movimentoZ).normalized;
@@ -42,7 +54,10 @@ public class Player : MonoBehaviour
         }
         else
         {
+            playerAudio.clip = null;
+            playerAudio.loop = false;
             animator.SetBool("Walk", false);
+
         }
 
         if (Input.GetKeyDown(KeyCode.R))
@@ -57,13 +72,18 @@ public class Player : MonoBehaviour
         if (other.gameObject.CompareTag("Diamante")) 
         {
             Destroy(other.gameObject);
-            Spawnar();
+            playerAudio.PlayOneShot(coletarAudio);
+
+
+           Spawnar();
             text.text = pontos++.ToString();
+            other.gameObject.GetComponent<AudioSource>().Play();
         }
     }
 
     public void Spawnar()
     {
+        playerAudio.PlayOneShot(spawnAudio, 0.5f);
         Instantiate(Diamante, pontosSpawn[Random.Range(0, pontosSpawn.Length)].position, Quaternion.identity);
     }
 }
