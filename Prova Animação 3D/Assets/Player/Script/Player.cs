@@ -1,89 +1,96 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public float velocidade = 5f;
-    public float velocidadeRotacao = 10f;
-    private int pontos;
-    private CharacterController controlador;
-    private Vector3 direcaoMovimento;
-    private Animator animator;
-    public GameObject Diamante;
-    public Transform[] pontosSpawn = new Transform[5];
-    public TextMeshPro text;
-    public AudioClip coletarAudio; 
-    public AudioClip andarAudio;
-    public AudioClip spawnAudio;
-    public AudioSource playerAudio;
+    public static Player instance;
+    void Awake()
+    {
+        instance = this;
+    }
 
+    public CharacterController controller;
+    public Transform cameraTransform;
+    public Animator animator;
+    public float speed = 6f;
+    public float runSpeedMultiplier = 1.5f;
+    public float turnSmoothTime = 0.1f;
+    private float turnSmoothVelocity;
+    public float gravity = -9.81f;
+    private Vector3 velocity;
+    private bool isGrounded;
+    public float strafeSpeedMultiplier = 0.8f;
+    public AudioSource playerAudio;
+    public AudioClip andarAudio;
+    public bool andando;
 
     void Start()
     {
-        controlador = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
         playerAudio = GetComponent<AudioSource>();
-        Spawnar();
     }
 
     void Update()
     {
-        float movimentoX = Input.GetAxis("Horizontal");
-        float movimentoZ = Input.GetAxis("Vertical");
-
-        Vector3 movimento = new Vector3(movimentoX, 0, movimentoZ);
-
-        if (movimento.magnitude > 0)
+        isGrounded = controller.isGrounded;
+        if (isGrounded && velocity.y < 0)
         {
-            if (playerAudio.clip != andarAudio)
+            velocity.y = -2f;
+        }
+
+        float horizontal = Input.GetAxis("Horizontal") * strafeSpeedMultiplier;
+        float vertical = Input.GetAxis("Vertical");
+        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+
+        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        float currentSpeed = isRunning ? speed * runSpeedMultiplier : speed;
+
+        if (direction.magnitude >= 0.1f)
+        {
+
+            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
+            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+            transform.rotation = Quaternion.Euler(0f, angle, 0f);
+
+
+            Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
+            controller.Move(moveDir.normalized * currentSpeed * Time.deltaTime);
+
+
+            if (!playerAudio.isPlaying)
             {
                 playerAudio.clip = andarAudio;
                 playerAudio.loop = true;
                 playerAudio.Play();
             }
 
-            animator.SetBool("Walk", true);
-
-            Vector3 direcao = new Vector3(movimentoX, 0, movimentoZ).normalized;
-
-            Quaternion novaRotacao = Quaternion.LookRotation(direcao);
-
-            transform.rotation = Quaternion.Slerp(transform.rotation, novaRotacao, velocidadeRotacao * Time.deltaTime);
+            animator.SetBool("Walk", !isRunning && direction.magnitude > 0.1f);
+            animator.SetBool("Run", isRunning);
+            andando = true;
         }
         else
         {
-            playerAudio.clip = null;
-            playerAudio.loop = false;
+            playerAudio.Stop();
             animator.SetBool("Walk", false);
-
+            animator.SetBool("Run", false);
+            andando = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            animator.SetTrigger("Fight");
-        }
-
-        controlador.Move(movimento * velocidade * Time.deltaTime);
+        velocity.y += gravity * Time.deltaTime;
+        controller.Move(velocity * Time.deltaTime);
     }
     void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag("Diamante")) 
+        if (other.gameObject.CompareTag("Chegada"))
         {
-            Destroy(other.gameObject);
-            playerAudio.PlayOneShot(coletarAudio);
-
-
-           Spawnar();
-            text.text = pontos++.ToString();
-            other.gameObject.GetComponent<AudioSource>().Play();
+            GameManager.instance.Vitoria();
         }
     }
-
-    public void Spawnar()
+    public void Morrer()
     {
-        playerAudio.PlayOneShot(spawnAudio, 0.5f);
-        Instantiate(Diamante, pontosSpawn[Random.Range(0, pontosSpawn.Length)].position, Quaternion.identity);
+        animator.SetTrigger("Death");
+        this.GetComponent<CharacterController>().enabled = false;
     }
+
 }

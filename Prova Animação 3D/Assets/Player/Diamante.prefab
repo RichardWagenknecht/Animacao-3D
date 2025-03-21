@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 3615633628083578642}
   - component: {fileID: 5027158459974401847}
   - component: {fileID: 5296718623441425908}
-  - component: {fileID: -1460724749510287494}
   m_Layer: 0
   m_Name: Diamante
   m_TagString: Diamante
@@ -64,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3fdda32b1c7196546af59f94a2f5969d, type: 2}
+  - {fileID: 2100000, guid: 60a6d99f0e653044b80f17fafafac807, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -203,27 +202,3 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &-1460724749510287494
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4628893344768955268}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82d61880018cf90479331f3a39054df3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  velocidade: 5
-  velocidadeRotacao: 10
-  Diamante: {fileID: 0}
-  pontosSpawn:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  text: {fileID: 0}
-  coletarAudio: {fileID: 0}
-  andarAudio: {fileID: 0}
